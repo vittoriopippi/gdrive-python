@@ -1,3 +1,6 @@
 gdrive_folder
 venv
 *.tar.gz
+dist
+build
+gdrive_python.egg-info
