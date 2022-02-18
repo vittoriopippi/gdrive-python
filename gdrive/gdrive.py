@@ -5,7 +5,7 @@ import tarfile
 import os
 import subprocess
 import sys
-import webbrowser
+# import webbrowser
 import threading
 
 class GDriveThread(threading.Thread):
@@ -102,7 +102,7 @@ class GDrive:
             if text.startswith('Authentication') and text.endswith('code:'):
                 urls = [line for line in text.split('\n') if line.startswith('http')]
                 assert len(urls) == 1
-                webbrowser.open(urls[0])
+                # webbrowser.open(urls[0])
                 print()
         if text.startswith('Authentication'):
             return None
