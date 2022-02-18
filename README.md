@@ -1,4 +1,22 @@
 # gdrive-python
+`gdrive-python` is a wrapping module in python of [gdrive](https://github.com/prasmussen/gdrive) made by [@prasmussen](https://github.com/prasmussen).
+
+- [Installation](#installation)
+  - [`FileNotFoundError`](#filenotfounderror)
+- [Usage](#usage)
+  - [`GDrive`](#gdrive)
+    - [`__init__`](#__init__self-gdrive_pathnone)
+    - [`download_script`](#staticmethod-download_scriptversion211-os_namenone-archnone-urlnone)
+    - [`upload`](#uploadself-filename-parent_idnone-parentnone-recursivetrue-namenone-descriptionnone-mimenone-sharenone-timeoutnone-chunksizenone-deletefalse-threadfalse)
+      - [thread](#thread)
+    - [`about`](#aboutself)
+    - [`logout`](#logoutself)
+    - [`list`](#listself-max30-querys-sort_ordernone-name_width0-absolutefalse-bytesnone-parentnone)
+    - [`list_dirs`](#list_dirsself-args-kwargs)
+    - [`list_files`](#list_filesself-args-kwargs)
+    - [`get_id`](#get_idself-name)
+    - [`info`](#infoself-id)
+
 ## Installation
 First of all to install the package you can execute:
 ```
@@ -26,7 +44,7 @@ Enter verification code:
 # paste here the code and press enter
 ```
 
-#### FileNotFoundError
+### FileNotFoundError
 Somethimes it can happen that the command `python -m gdrive about` returns the `FileNotFoundError`
 ```
 vpippi$ python -m gdrive about
@@ -42,17 +60,22 @@ python -m gdrive about --arch 386
 ```
 
 ## Usage
-import the `GDrive` class 
+import the `gdrive` classes in that way: 
 ```python
-form gdrive import GDrive
-
-drive = GDrive()
+form gdrive import GDrive, GDrivePath, GDriveThread
 ```
 ### GDrive
-#### \_\_init\_\_(self, gdrive_path=None)
+```python
+drive = GDrive()
+```
+If you whant you can also enable the printing commands setting:
+```python
+drive.print_output = True
+```
+### \_\_init\_\_(self, gdrive_path=None)
 - `gdrive_path` defines the gdrive script location path. If not specified it gets the default location `gdrive_folder/gdrive`
 
-#### `@staticmethod` download\_script(version='2.1.1', os_name=None, arch=None, url=None)
+### `@staticmethod` download\_script(version='2.1.1', os_name=None, arch=None, url=None)
 
 - `version` is the version of the gdrive script to download
 - `os_name` is the operating system name, by default it gets current os. Options: `['windows', 'linux', 'darwin']`
@@ -63,7 +86,7 @@ The script download the specified version in the current directory (eg. `gdrive_
 
 Returns None.
 
-#### upload(self, filename, parent\_id=None, parent=None, recursive=True, name=None, description=None, mime=None, share=None, timeout=None, chunksize=None, delete=False, thread=False)
+### upload(self, filename, parent\_id=None, parent=None, recursive=True, name=None, description=None, mime=None, share=None, timeout=None, chunksize=None, delete=False, thread=False)
 - `filename` path of the file/folder to upload
 - `parent` parent directory by name (eg. `/path/foldername`)
 - `parent_id` parent id, used to upload file to a specific directory, if specified `parent` folder is ignored.
@@ -77,7 +100,18 @@ Returns None.
 - `delete` delete local file when upload is successful
 - `thread` defines if you want to upload the file in a separate thread (see the thread section)
 
-##### thread
+While uploading a large file could be useful set `print_output = True`
+
+**Example:**
+```python
+>>> drive.print_output = True
+>>> drive.upload('File99.mp4')
+CMD: gdrive_folder\gdrive.exe --config gdrive_folder upload --recursive checkpoint_042.pth
+Uploading checkpoint_042.pth
+1.1 GB / 2.0 GB, Rate: 13.7 MB/s
+```
+
+#### thread
 When `thead=True` the methods return a `GDriveThread(threading.Thread)` object.
 
 **Usage:**
@@ -88,7 +122,7 @@ When `thead=True` the methods return a `GDriveThread(threading.Thread)` object.
 >>> thread.join()
 ```
 
-#### about(self)
+### about(self)
 Returns a dictionary that shows the account info.
 
 **Example:**
@@ -102,9 +136,9 @@ Returns a dictionary that shows the account info.
     'Max upload size': '60 GB',
 }
 ```
-#### logout(self)
+### logout(self)
 The `logout` function delete the file `gdrive_folder/token_v2.json` which contains the google info. After this command the login is required again (see installation procedure).
-#### list(self, max=30, querys=[], sort\_order=None, name\_width=0, absolute=False, bytes=None, parent=None)
+### list(self, max=30, querys=[], sort\_order=None, name\_width=0, absolute=False, bytes=None, parent=None)
 - `max` max files to list
 - `querys` query list to execute. See https://developers.google.com/drive/search-parameters
 - `sort_order` sort order. See https://godoc.org/google.golang.org/api/drive/v3#FilesListCall.OrderBy
@@ -127,15 +161,15 @@ Returns a list of dictionaries.
     ...
 ]
 ```
-#### list\_dirs(self, \*args, \*\*kwargs)
+### list\_dirs(self, \*args, \*\*kwargs)
 Same parameters as the `list` method.
 
 Returns only the a list of dirs.
-#### list\_files(self, \*args, \*\*kwargs)
+### list\_files(self, \*args, \*\*kwargs)
 Same parameters as the `list` method.
 
 Returns only the a list of files.
-#### get\_id(self, name)
+### get\_id(self, name)
 - `name` name of the file/folder that you want the id
 
 Since Google Drive allows different files/directories with the same name, the function returns:
@@ -154,7 +188,7 @@ Since Google Drive allows different files/directories with the same name, the fu
 >>> drive.get_id('File99.mp4')
 None
 ```
-#### info(self, id)
+### info(self, id)
 - `id` id of the file/folder
 
 Returns a dictionary of all info values of the given element.
