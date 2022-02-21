@@ -104,14 +104,14 @@ While uploading a large file could be useful set `print_output = True`
 
 **Example:**
 ```python
->>> drive.print_output = True
+>>> drive.print_output = True # this line is not mandatory
 >>> drive.upload('File99.mp4')
 CMD: gdrive_folder\gdrive.exe --config gdrive_folder upload --recursive checkpoint_042.pth
 Uploading checkpoint_042.pth
 1.1 GB / 2.0 GB, Rate: 13.7 MB/s
 ```
 
-#### thread
+### thread
 When `thead=True` the methods return a `GDriveThread(threading.Thread)` object.
 
 **Usage:**
