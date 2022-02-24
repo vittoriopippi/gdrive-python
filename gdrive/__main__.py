@@ -10,7 +10,12 @@ parser.add_argument("--url", help="Script url", type=str, default=None)
 args = parser.parse_args()
 
 if args.action == 'about':
-    path = GDrive.download_script(version=args.version, os_name=args.os_name, arch=args.arch, url=args.url)
-    drive = GDrive(path)
+    drive = GDrive(download=True, version=args.version, os_name=args.os_name, arch=args.arch, url=args.url)
     drive.print_output = True
     drive.about()
+elif args.action == 'upload':
+    raise NotImplementedError
+elif args.action == 'upload-tar':
+    raise NotImplementedError
+else:
+    print(f'Command {args.action} not implemented')

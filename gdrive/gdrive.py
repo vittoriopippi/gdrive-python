@@ -61,11 +61,14 @@ class GDrive:
     }
     token_file = 'token_v2.json'
 
-    def __init__(self, gdrive_path=None):
+    def __init__(self, gdrive_path=None, download=False, version=None, os_name=None, arch=None, url=None):
+        if download:
+            gdrive_path = GDrive.download_script(version=version, os_name=os_name, arch=arch, url=url)
+
         os.makedirs(self.folder_name, exist_ok=True)
+        self.gdrive = os.path.join(self.folder_name, self.gdrive_names[platform.system().lower()])
         if gdrive_path is not None and os.path.exists(gdrive_path):
             self.gdrive = gdrive_path
-        self.gdrive = os.path.join(self.folder_name, self.gdrive_names[platform.system().lower()])
         if not os.path.exists(self.gdrive):
             raise FileNotFoundError('No gdrive script found.')
         
@@ -239,12 +242,14 @@ def run_process(exe):
         yield char.decode('utf-8')
 
 if __name__ == '__main__':
-    if len(sys.argv) > 1 and sys.argv[1] == 'about':
-        path = GDrive.download_script()
-        drive = GDrive(path)
-        drive.print_output = True
-        drive.about()
+    # if len(sys.argv) > 1 and sys.argv[1] == 'about':
+    #     path = GDrive.download_script()
+    #     drive.print_output = True
+    #     drive.about()
 
+    drive = GDrive()
+    for d in drive.list():
+        print(d)
     # print(drive.list_dirs(max=100, parent='root'))
     # print(drive.list_files(max=30, parent='my-drive'))
     # drive.info('root')
