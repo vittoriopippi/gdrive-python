@@ -1,4 +1,5 @@
 import platform
+import shutil
 from typing import Sequence
 import requests
 import tarfile
@@ -52,7 +53,7 @@ class GDrivePath:
 
 class GDrive:
     print_output = False
-    folder_name = 'gdrive_folder'
+    folder_name = os.path.join(os.path.expanduser('~'), '.gdrive')
     gdrive = None
     gdrive_names = {
         'windows': 'gdrive.exe',
@@ -61,9 +62,9 @@ class GDrive:
     }
     token_file = 'token_v2.json'
 
-    def __init__(self, gdrive_path=None, download=False, version=None, os_name=None, arch=None, url=None):
+    def __init__(self, gdrive_path=None, download=False, **kwargs):
         if download:
-            gdrive_path = GDrive.download_script(version=version, os_name=os_name, arch=arch, url=url)
+            gdrive_path = GDrive.download_script(**kwargs)
 
         os.makedirs(self.folder_name, exist_ok=True)
         self.gdrive = os.path.join(self.folder_name, self.gdrive_names[platform.system().lower()])
@@ -82,19 +83,15 @@ class GDrive:
             url = f'https://github.com/prasmussen/gdrive/releases/download/{version}/gdrive_{version}_{os_name}_{arch}.tar.gz'
 
         r = requests.get(url, allow_redirects=True)
-        assert r.status_code == 200
+        assert r.status_code == 200, f'Problems with the url: "{url}", if the problem persist please download the script manually and place it in "{GDrive.folder_name}"'
 
-        filename = url.split('/')[-1]
+        filename = os.path.join(GDrive.folder_name, url.split('/')[-1])
         with open(filename, 'wb') as file:
             file.write(r.content)
 
         with tarfile.open(filename) as file:
-            os.makedirs('gdrive_folder', exist_ok=True)
-            file.extractall('gdrive_folder')
-        
-        folder_files = [f for f in os.listdir('gdrive_folder') if f.startswith('gdrive')]
-        assert len(folder_files) == 1
-        return os.path.join(os.getcwd(), 'gdrive_folder', folder_files[0])
+            file.extractall(GDrive.folder_name)
+        return filename
 
     def about(self):
         text = ''
@@ -106,14 +103,21 @@ class GDrive:
                 urls = [line for line in text.split('\n') if line.startswith('http')]
                 assert len(urls) == 1
                 # webbrowser.open(urls[0])
+                if not self.print_output: print(text)
                 print()
         if text.startswith('Authentication'):
-            return None
+            return text
         return self._to_dict(text)
     
-    def logout(self):
-        if os.path.exists(os.path.join(self.folder_name, self.token_file)):
-            os.remove(os.path.join(self.folder_name, self.token_file))
+    @staticmethod
+    def login(): GDrive().about()
+    
+    @staticmethod
+    def logout():
+        if os.path.exists(GDrive.folder_name) and os.path.exists(os.path.join(GDrive.folder_name, GDrive.token_file)):
+            os.remove(os.path.join(GDrive.folder_name, GDrive.token_file))
+            return True
+        return False
     
     def list(self, max=30, querys=[], sort_order=None, name_width=0, absolute=False, no_header=False, bytes=None, parent=None):
         text = ''
@@ -160,7 +164,26 @@ class GDrive:
         for char in self._exec(commands):
             if self.print_output: sys.stdout.write(char)
             text += char
+        if text.startswith('Failed'):
+            return None
         return self._to_dict(text)
+    
+    def mkdir(self, name, parent_id=None, parent=None, description=None):
+        text = ''
+        commands = ['--config', self.folder_name, 'upload']
+
+        if parent_id is not None:
+            commands += ['--parent', parent_id]
+        elif parent is not None:
+            commands += ['--parent', GDrivePath(self, parent).id()]
+
+        if description: commands += ['--description', description]
+        commands += [name]
+        
+        for char in self._exec(commands):
+            if self.print_output: sys.stdout.write(char)
+            text += char
+        return text
 
     def upload(self, filename, parent_id=None, parent=None, recursive=True, name=None, description=None,
                 mime=None, share=None, timeout=None, chunksize=None, delete=False, thread=False):
@@ -194,8 +217,41 @@ class GDrive:
             if self.print_output: sys.stdout.write(char)
             text += char
 
-    def upload_tar(self):
-        raise NotImplementedError
+    def upload_tar(self, folder_path, parent_id=None, parent=None):
+        if platform.system().lower() != 'linux':
+            print(f'This method is available only on linux architectures')
+            return
+        if not os.path.exists(folder_path) or not os.path.isdir(folder_path):
+            print(f'"{folder_path}" must be an existing folder')
+            return
+        if not os.path.isdir(folder_path):
+            print(f'"{folder_path}" must be a folder')
+            return
+        if parent_id is None and parent is None:
+            print(f'One between "parent" and "parent_id" must be defined')
+            return
+
+        basename = os.path.basename(folder_path)
+        root_folder = '/'.join(folder_path.split('/')[:-1])
+
+        old_pwd = os.getcwd()
+        if len(root_folder) > 0: os.chdir(root_folder)
+        commands = [
+            os.path.join('gdrive', 'upload_tar_folder.sh'),
+            self.gdrive,
+            basename
+        ]
+        if parent_id is not None:
+            commands += [parent_id]
+        elif parent is not None:
+            commands += [GDrivePath(self, parent).id()]      
+
+        text = ''
+        for char in run_process(commands):
+            if self.print_output: sys.stdout.write(char)
+            text += char
+
+        os.chdir(old_pwd)
 
     @staticmethod
     def _to_tabular(text):
@@ -248,8 +304,10 @@ if __name__ == '__main__':
     #     drive.about()
 
     drive = GDrive()
-    for d in drive.list():
-        print(d)
+    # for d in drive.list():
+    #     print(d)
+    drive.print_output = True
+    drive.upload_tar('gdrive_folder', parent='/')
     # print(drive.list_dirs(max=100, parent='root'))
     # print(drive.list_files(max=30, parent='my-drive'))
     # drive.info('root')
