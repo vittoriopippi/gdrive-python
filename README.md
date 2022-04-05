@@ -62,7 +62,7 @@ python -m gdrive about --arch 386
 ## Usage
 import the `gdrive` classes in that way: 
 ```python
-form gdrive import GDrive, GDrivePath, GDriveThread
+from gdrive import GDrive, GDrivePath, GDriveThread
 ```
 ### GDrive
 ```python
