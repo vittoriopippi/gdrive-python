@@ -189,7 +189,7 @@ class GDrive:
         if len(ids) == 1: ids = ids[0]
         return ids
 
-    def upload(self, filename, parent_id=None, parent=None, recursive=True, name=None, description=None,
+    def upload(self, filename, parent_id=None, parent=None, recursive=False, name=None, description=None,
                 mime=None, share=None, timeout=None, chunksize=None, delete=False, thread=False):
         assert os.path.exists(filename)
 

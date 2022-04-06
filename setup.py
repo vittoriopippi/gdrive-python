@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='gdrive-python',
-    version='1.0.6',    
+    version='1.0.7',    
     description='Python wrapper for Google Drive',
     url='https://github.com/vittoriopippi/gdrive-python',
     author='Vittorio Pippi',
