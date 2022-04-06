@@ -314,6 +314,7 @@ if __name__ == '__main__':
     drive.print_output = True
     drive.about()
     # drive.upload_tar('gdrive_folder', parent='/')
+    drive.mkdir('test', parent='/gdrive')
     # print(drive.list_dirs(max=100, parent='root'))
     # print(drive.list_files(max=30, parent='my-drive'))
     # drive.info('root')
