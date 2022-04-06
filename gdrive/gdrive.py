@@ -6,6 +6,7 @@ import tarfile
 import os
 import subprocess
 import sys
+import re
 # import webbrowser
 import threading
 
@@ -170,7 +171,7 @@ class GDrive:
     
     def mkdir(self, name, parent_id=None, parent=None, description=None):
         text = ''
-        commands = ['--config', self.folder_name, 'upload']
+        commands = ['--config', self.folder_name, 'mkdir']
 
         if parent_id is not None:
             commands += ['--parent', parent_id]
@@ -183,7 +184,10 @@ class GDrive:
         for char in self._exec(commands):
             if self.print_output: sys.stdout.write(char)
             text += char
-        return text
+        
+        ids = re.findall(r"Directory ([^ ]+) created", text)
+        if len(ids) == 1: ids = ids[0]
+        return ids
 
     def upload(self, filename, parent_id=None, parent=None, recursive=True, name=None, description=None,
                 mime=None, share=None, timeout=None, chunksize=None, delete=False, thread=False):
@@ -303,11 +307,13 @@ if __name__ == '__main__':
     #     drive.print_output = True
     #     drive.about()
 
+    GDrive.download_script()
     drive = GDrive()
     # for d in drive.list():
     #     print(d)
     drive.print_output = True
-    drive.upload_tar('gdrive_folder', parent='/')
+    drive.about()
+    # drive.upload_tar('gdrive_folder', parent='/')
     # print(drive.list_dirs(max=100, parent='root'))
     # print(drive.list_files(max=30, parent='my-drive'))
     # drive.info('root')
